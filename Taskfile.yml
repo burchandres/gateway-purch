@@ -6,12 +6,20 @@ version: '3'
 tasks:
   build:
     cmds:
-      - go build .
+      - go build ./...
+
+  lint:
+    cmds:
+      - golangci-lint run .
 
   run:
     cmds:
-      - go run .
+      - go run ./...
+
+  vet:
+    cmds:
+      - go vet ./...
 
   test:
     cmds:
-      - go test .
+      - go test ./...
