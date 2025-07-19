@@ -9,6 +9,7 @@ import (
 	"context"
 )
 
+
 func configureServerHandler() *http.ServeMux {
 	s := http.NewServeMux()
 
@@ -16,7 +17,7 @@ func configureServerHandler() *http.ServeMux {
 	s.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		_, err := fmt.Fprintln(w, "Gateway-Purch v0.1.0")
 		if err != nil {
-			slog.Error("error with root handle response", "error", err.Error())
+			slog.Error("error with root handle response.", "error", err.Error())
 		}
 	})
 
@@ -26,11 +27,12 @@ func configureServerHandler() *http.ServeMux {
 func main() {
 	slog.Info("starting gateway server...")
 	ctx := context.Background()
+	config := ReadConfig()
 
-	serverMux := configureServerHandler()
+	handler := configureServerHandler()
 	server := http.Server{
-		Addr: "localhost:8080",
-		Handler: serverMux,
+		Addr: config.ServerAddress,
+		Handler: handler,
 	}
 
 	go func() {
@@ -46,7 +48,7 @@ func main() {
 	slog.Info("shutting down gateway server...")
 
 	if err := server.Shutdown(ctx); err != nil {
-		slog.Error("error shutting down gateway server", "error", err.Error())
+		slog.Error("error shutting down gateway server.", "error", err.Error())
 	}
 
 	slog.Info("gateway server shutdown.")
