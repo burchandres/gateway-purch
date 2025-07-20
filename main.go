@@ -10,18 +10,19 @@ import (
 )
 
 
-func configureServerHandler() *http.ServeMux {
-	s := http.NewServeMux()
+func configureMux() *http.ServeMux {
+	mux := http.NewServeMux()
 
 	// root handleFunc
-	s.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		_, err := fmt.Fprintln(w, "Gateway-Purch v0.1.0")
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		slog.Info("endpoint '/' hit, responding...")
+		_, err := fmt.Fprintln(w, "Gateway-Purch:v0.1.0")
 		if err != nil {
 			slog.Error("error with root handle response.", "error", err.Error())
 		}
 	})
 
-	return s
+	return mux
 }
 
 func main() {
@@ -29,10 +30,10 @@ func main() {
 	ctx := context.Background()
 	config := ReadConfig()
 
-	handler := configureServerHandler()
+	mux := configureMux()
 	server := http.Server{
 		Addr: config.ServerAddress,
-		Handler: handler,
+		Handler: mux,
 	}
 
 	go func() {
