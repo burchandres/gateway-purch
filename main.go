@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"context"
+	"sync"
 )
 
 
@@ -36,7 +37,11 @@ func main() {
 		Handler: mux,
 	}
 
+	var wg sync.WaitGroup
+
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			panic(err)
 		}
@@ -51,6 +56,8 @@ func main() {
 	if err := server.Shutdown(ctx); err != nil {
 		slog.Error("error shutting down gateway server.", "error", err.Error())
 	}
+
+	wg.Wait()
 
 	slog.Info("gateway server shutdown.")
 }
