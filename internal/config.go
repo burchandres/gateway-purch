@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"log/slog"
@@ -7,11 +7,12 @@ import (
 )
 
 type GatewayConfig struct {
-	ServerAddress string `mapstructure:"server-address"`
-	TargetRoutes []Route `mapstructure:"target-routes"`
+	ServerAddress string     `mapstructure:"server-address"`
+	Services []ServiceConfig `mapstructure:"services"`
+	Secret string 			 `mapstructure:"secret"`
 }
 
-type Route struct {
+type ServiceConfig struct {
 	Name    string `mapstructure:"name"`
 	Root    string `mapstructure:"root"`
 	Address string `mapstructure:"address"`

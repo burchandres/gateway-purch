@@ -8,6 +8,8 @@ import (
 	"os/signal"
 	"context"
 	"sync"
+
+	gpi "gateway-purch/internal"
 )
 
 
@@ -18,8 +20,19 @@ func configureMux() *http.ServeMux {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		slog.Info("endpoint '/' hit, responding...")
 		_, err := fmt.Fprintln(w, "Gateway-Purch:v0.1.0")
+		// target, _ := url.Parse("http://localhost:8080/budgets/sync-transactions")
+		// _, err := fmt.Fprintf(w, "url.Parse('http://localhost:8080/budgets/sync-transactions'): %s", target)
 		if err != nil {
-			slog.Error("error with root handle response.", "error", err.Error())
+			slog.Error("error generating response.", "endpoint", r.URL.Path, "error", err.Error())
+		}
+	})
+
+	// test handleFunc
+	mux.HandleFunc("/foo/bar/test", func(w http.ResponseWriter, r *http.Request) {
+		slog.Info("endpoint '/foo/bar/test hit, responding...")
+		_, err := fmt.Fprintf(w, "r.URL.Path is: %s\n", r.URL.Path)
+		if err != nil {
+			slog.Error("error generating response.", "endpoint", r.URL.Path, "error", err.Error())
 		}
 	})
 
@@ -29,7 +42,7 @@ func configureMux() *http.ServeMux {
 func main() {
 	slog.Info("starting gateway server...")
 	ctx := context.Background()
-	config := ReadConfig()
+	config := gpi.ReadConfig()
 
 	mux := configureMux()
 	server := http.Server{

@@ -1,9 +1,0 @@
-server-address: ":8080"
-target-routes:
-  - name: "User Service"
-    root: "/users"
-    address: "http://localhost:8081"
-
-  - name: "Budget Service"
-    root: "/budget"
-    address: "http://localhost:8081"

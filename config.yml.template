@@ -1,0 +1,10 @@
+server-address: ":8080"
+secret: 
+services:
+  - name: "users"
+    root: "/users"
+    address: "http://localhost:8081"
+
+  - name: "budgets"
+    root: "/budgets"
+    address: "http://localhost:8081"
