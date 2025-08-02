@@ -20,8 +20,6 @@ func configureMux() *http.ServeMux {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		slog.Info("endpoint '/' hit, responding...")
 		_, err := fmt.Fprintln(w, "Gateway-Purch:v0.1.0")
-		// target, _ := url.Parse("http://localhost:8080/budgets/sync-transactions")
-		// _, err := fmt.Fprintf(w, "url.Parse('http://localhost:8080/budgets/sync-transactions'): %s", target)
 		if err != nil {
 			slog.Error("error generating response.", "endpoint", r.URL.Path, "error", err.Error())
 		}

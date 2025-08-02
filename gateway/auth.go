@@ -7,10 +7,12 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtParser = jwt.NewParser(jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Name}))
+type authService struct {
+	jwtp *jwt.Parser
+}
 
-func authenticateJWT(tokenString, secret string) (*jwt.Token, error) {
-	return jwtParser.Parse(tokenString, func(t *jwt.Token) (any, error) {
+func (a *authService) authenticateJWT(tokenString, secret string) (*jwt.Token, error) {
+	return a.jwtp.Parse(tokenString, func(t *jwt.Token) (any, error) {
 		return secret, nil
 	})
 }

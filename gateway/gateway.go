@@ -84,7 +84,7 @@ func (g *Gateway) addService(name, targetURL string) error {
 		req.Header.Del("X-API-Key")
 		
 		// Log the request
-		slog.Debug("[%s] Forwarding %s %s to %s", name, req.Method, req.URL.Path, target)
+		slog.Debug("forwarding", "service", name, "method", req.Method, "request-url", req.URL.Path, "target-url", target)
 	}
 
 	g.services[name] = &Service{
@@ -93,7 +93,7 @@ func (g *Gateway) addService(name, targetURL string) error {
 		Proxy:  proxy,
 	}
 	
-	slog.Info("Registered service: %s -> %s", name, targetURL)
+	slog.Info("Registered new service", "service", name, "target-url", targetURL)
 	return nil
 }
 
@@ -113,11 +113,16 @@ func (g *Gateway) errorHandler(w http.ResponseWriter, r *http.Request, err error
 
 // retrieves serviceName for proxy forwarding
 func (g *Gateway) determineService(urlPath string) string {
-	splitPath := strings.Split(urlPath, "/")
-	if len(splitPath) >= 2 && splitPath[0] == "api" {
-		return splitPath[1]
+	splitPath := strings.Split(strings.TrimPrefix(urlPath, "/"), "/")
+	potentialService := splitPath[0]
+
+	// verify it's a spun up service
+	_, ok := g.services[potentialService]
+	if !ok {
+		return unknown
 	}
-	return unknown
+
+	return potentialService
 }
 
 func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {

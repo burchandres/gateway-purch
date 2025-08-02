@@ -7,13 +7,17 @@ tasks:
   #################
   # docker cmds
   #################
+  build-docker:
+    cmds:
+      - docker compose --file=docker-compose.yml build
+
   down:
     cmds:
       - docker compose --file=docker-compose.yml down
 
   up:
     cmds:
-      - docker compose --file=docker-compose.yml up -d --build
+      - docker compose --file=docker-compose.yml up -d
 
   #############
   # go cmds

@@ -6,7 +6,7 @@ import (
 	"log/slog"
 )
 
-func AuthMiddleware(next http.Handler, secret string) http.Handler {
+func authMiddleware(next http.Handler, secret string, authService *authService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// if we're hitting login or register then no authorization needed
 		if strings.Contains(r.URL.Path, "/register") || strings.Contains(r.URL.Path, "/token") {
@@ -28,7 +28,7 @@ func AuthMiddleware(next http.Handler, secret string) http.Handler {
 		}
 		// retrieve token to authenticate request
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		token, err := authenticateJWT(tokenString, secret)
+		token, err := authService.authenticateJWT(tokenString, secret)
 		if err != nil {
 			slog.Debug("error validating provided token", "error", err.Error())
 			http.Error(w, "error validating provided token", http.StatusUnauthorized)
