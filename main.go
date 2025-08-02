@@ -9,7 +9,7 @@ import (
 	"context"
 	"sync"
 
-	gpi "gateway-purch/internal"
+	"gateway-purch/gateway"
 )
 
 
@@ -42,7 +42,7 @@ func configureMux() *http.ServeMux {
 func main() {
 	slog.Info("starting gateway server...")
 	ctx := context.Background()
-	config := gpi.ReadConfig()
+	config := gateway.ReadConfig()
 
 	mux := configureMux()
 	server := http.Server{

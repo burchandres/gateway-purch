@@ -8,8 +8,6 @@ import (
 	"log/slog"
 	"strings"
 	"context"
-
-	gpi "gateway-purch/internal"
 )
 
 const unknown string = "unknown"
@@ -25,14 +23,14 @@ type Service struct {
 
 type Gateway struct {
 	services map[string]*Service // maps service name to service
-	config gpi.GatewayConfig
+	config GatewayConfig
 }
 
 // Creates a new Gateway with services already configured predefined in the config.yml
 func NewGateway() *Gateway {
 	gateway := &Gateway{
 		services: make(map[string]*Service),
-		config: *gpi.ReadConfig(),
+		config: *ReadConfig(),
 	}
 
 	if err := gateway.configureServices(); err != nil {

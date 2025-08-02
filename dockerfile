@@ -1,18 +1,24 @@
 FROM golang:1.24.5-alpine3.22 AS builder
 
-WORKDIR /app
-
-COPY go.mod go.sum config.go main.go config.yml /app/
-
-RUN go build . 
-
-FROM golang:1.24.5-alpine3.22 AS runner
+# Install dependencies
+RUN apk add --no-cache git ca-certificates tzdata
 
 WORKDIR /app
 
-# We just need the binary to run
-COPY --from=builder /app/gateway-purch /app/gateway-purch
-COPY --from=builder /app/config.yml /app/config.yml
-COPY LICENSE /app/LICENSE
-# Run the binary
-CMD ["/app/gateway-purch"]
+COPY . /app/
+
+RUN go mod tidy
+
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo 
+
+FROM alpine:latest AS runner
+
+# Install ca-certificates for HTTPS requests
+RUN apk --no-cache add ca-certificates curl
+
+WORKDIR /app
+
+# Copy the binary from builder stage
+COPY --from=builder /app/gateway-purch .
+COPY --from=builder /app/config.yml .
+COPY --from=builder /app/LICENSE .

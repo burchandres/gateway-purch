@@ -4,7 +4,21 @@ version: '3'
 
 
 tasks:
-  build:
+  #################
+  # docker cmds
+  #################
+  down:
+    cmds:
+      - docker compose --file=docker-compose.yml down
+
+  up:
+    cmds:
+      - docker compose --file=docker-compose.yml up -d --build
+
+  #############
+  # go cmds
+  #############
+  build-go:
     cmds:
       - go build ./...
 

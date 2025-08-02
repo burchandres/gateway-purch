@@ -1,10 +1,8 @@
 server-address: ":8080"
 secret: 
+postgres-address: "postgres:5432"
+redis-address: "redis:6379"
 services:
-  - name: "users"
-    root: "/users"
-    address: "http://localhost:8081"
-
   - name: "budgets"
     root: "/budgets"
     address: "http://localhost:8081"
