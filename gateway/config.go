@@ -10,6 +10,8 @@ type GatewayConfig struct {
 	ServerAddress string     `mapstructure:"server-address"`
 	Services []ServiceConfig `mapstructure:"services"`
 	Secret string 			 `mapstructure:"secret"`
+	PostgresAddress string   `mapstructure:"postgres-address"`
+	RedisAddress string		 `mapstructure:"redis-address"`
 }
 
 type ServiceConfig struct {

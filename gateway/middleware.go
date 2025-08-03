@@ -1,12 +1,12 @@
 package gateway
 
 import (
-	"strings"
-	"net/http"
 	"log/slog"
+	"net/http"
+	"strings"
 )
 
-func authMiddleware(next http.Handler, secret string, authService *authService) http.Handler {
+func AuthMiddleware(next http.Handler, authService AuthService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// if we're hitting login or register then no authorization needed
 		if strings.Contains(r.URL.Path, "/register") || strings.Contains(r.URL.Path, "/token") {
@@ -28,17 +28,16 @@ func authMiddleware(next http.Handler, secret string, authService *authService) 
 		}
 		// retrieve token to authenticate request
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		token, err := authService.authenticateJWT(tokenString, secret)
-		if err != nil {
-			slog.Debug("error validating provided token", "error", err.Error())
-			http.Error(w, "error validating provided token", http.StatusUnauthorized)
-			return
-		}
-		if !token.Valid {
-			slog.Debug("invalid token provided", "token", tokenString)
-			http.Error(w, "invalid authorization token.", http.StatusUnauthorized)
+		if _, err := authService.authenticateJWT(tokenString); err != nil {
+			slog.Debug("error authenticating provided tokenString", "tokenString", tokenString, "error", err.Error())
+			http.Error(w, "error authenticating provided tokenString", http.StatusUnauthorized)
 			return
 		}
 
+
+
+		// ctx := context.WithValue(r.Context(), "user", user)
+
+		// next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

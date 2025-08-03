@@ -1,29 +1,29 @@
 package gateway
 
 import (
+	"context"
 	"fmt"
-	"net/url"
+	"log/slog"
 	"net/http"
 	"net/http/httputil"
-	"log/slog"
+	"net/url"
 	"strings"
-	"context"
 )
 
 const unknown string = "unknown"
 
+
+type Gateway struct {
+	services map[string]*Service // maps service name to service
+	config GatewayConfig
+}
 
 type Service struct {
 	Name string
 	URL  *url.URL
 	Proxy *httputil.ReverseProxy
 	// TODO: add rate limiter bucket
-	// TODO: add health checkpoint -- backend changes in purch
-}
-
-type Gateway struct {
-	services map[string]*Service // maps service name to service
-	config GatewayConfig
+	// TODO: add health checkpoint -- requires some backend changes in purch
 }
 
 // Creates a new Gateway with services already configured predefined in the config.yml
@@ -34,7 +34,7 @@ func NewGateway() *Gateway {
 	}
 
 	if err := gateway.configureServices(); err != nil {
-		slog.Error("error configuring predefined services for gateway.", "error", err.Error())
+		slog.Error("error configuring services defined in config for gateway.", "error", err.Error())
 		panic(err)
 	}
 
@@ -81,7 +81,6 @@ func (g *Gateway) addService(name, targetURL string) error {
 		
 		// Remove sensitive headers that shouldn't go to backend
 		req.Header.Del("Authorization")
-		req.Header.Del("X-API-Key")
 		
 		// Log the request
 		slog.Debug("forwarding", "service", name, "method", req.Method, "request-url", req.URL.Path, "target-url", target)
@@ -97,39 +96,25 @@ func (g *Gateway) addService(name, targetURL string) error {
 	return nil
 }
 
-// TODO: return actually usable errors soon
 // errorHandler handles proxy errors
 func (g *Gateway) errorHandler(w http.ResponseWriter, r *http.Request, err error) {
 	serviceName := r.Context().Value("service")
-	slog.Error("[%s] Proxy error: %v", serviceName, err)
+	slog.Error("Proxy error", "service", serviceName, "error", err.Error())
 	
 	// Return appropriate error to client
+	// TODO: refactor to make errors more useful if needed
 	if strings.Contains(err.Error(), "connection refused") {
-		http.Error(w, "Service temporarily unavailable", http.StatusServiceUnavailable)
+		http.Error(w, "service temporarily unavailable", http.StatusServiceUnavailable)
 	} else {
-		http.Error(w, "Internal gateway error", http.StatusInternalServerError)
+		http.Error(w, "internal gateway error", http.StatusInternalServerError)
 	}
-}
-
-// retrieves serviceName for proxy forwarding
-func (g *Gateway) determineService(urlPath string) string {
-	splitPath := strings.Split(strings.TrimPrefix(urlPath, "/"), "/")
-	potentialService := splitPath[0]
-
-	// verify it's a spun up service
-	_, ok := g.services[potentialService]
-	if !ok {
-		return unknown
-	}
-
-	return potentialService
 }
 
 func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	serviceName := g.determineService(r.URL.Path)
 	service, ok := g.services[serviceName]
 	if !ok {
-		slog.Error(fmt.Sprintf("%s service not configured", serviceName))
+		slog.Error("service not configured", "service", serviceName)
 		http.Error(w, fmt.Sprintf("%s service not configured", serviceName), http.StatusNotFound)
 		return 
 	}
@@ -138,6 +123,16 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := context.WithValue(r.Context(), "service", serviceName)
 	r = r.WithContext(ctx)
 
-	// forward request ot the service
+	// forward request to the service
 	service.Proxy.ServeHTTP(w, r)
+}
+
+// retrieves serviceName for request forwarding
+func (g *Gateway) determineService(urlPath string) string {
+	splitPath := strings.Split(strings.TrimPrefix(urlPath, "/"), "/")
+	if len(splitPath) >= 2 && splitPath[0] == "api" {
+		return splitPath[1]
+	}
+
+	return unknown
 }

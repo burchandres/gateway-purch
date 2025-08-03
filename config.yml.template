@@ -3,6 +3,6 @@ secret:
 postgres-address: "postgres:5432"
 redis-address: "redis:6379"
 services:
-  - name: "budgets"
-    root: "/budgets"
+  - name: "budget"
+    root: "/budget"
     address: "http://localhost:8081"

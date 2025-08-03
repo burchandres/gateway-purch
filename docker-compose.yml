@@ -10,39 +10,5 @@ services:
     networks:
       - purch
 
-  # postgres:
-  #   container_name: postgres-purch
-  #   image: postgres:latest
-  #   ports:
-  #     - "5432:5432"
-  #   environment:
-  #     POSTGRES_USER: ${POSTGRES_USERNAME}
-  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #   healthcheck:
-  #     test: pg_isready -U postgres
-  #     interval: 2s
-  #     timeout: 3s
-  #     retries: 40
-  #   networks:
-  #     - purch
-
-  # redis:
-  #   container_name: purch-redis
-  #   image: redis:alpine
-  #   ports:
-  #     - "6379:6379"
-  #   volumes:
-  #     - redis_data:/data
-  #   healthcheck:
-  #     test: ["CMD", "redis-cli", "ping"]
-  #     interval: 5s
-  #     timeout: 3s
-  #     retries: 5
-  #     start_period: 30s
-  #   networks:
-  #     - purch
-
 networks:
   purch:

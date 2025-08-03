@@ -1,19 +1,23 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
-	"context"
 	"sync"
 
 	"gateway-purch/gateway"
 )
 
+// we will probably just spin up a db connection within the authService
 
-func configureMux() *http.ServeMux {
+func configureMux(
+	gate *gateway.Gateway, 
+	authService gateway.AuthService,
+) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	// root handleFunc
@@ -21,18 +25,16 @@ func configureMux() *http.ServeMux {
 		slog.Info("endpoint '/' hit, responding...")
 		_, err := fmt.Fprintln(w, "Gateway-Purch:v0.1.0")
 		if err != nil {
-			slog.Error("error generating response.", "endpoint", r.URL.Path, "error", err.Error())
+			slog.Error(
+				"error generating response.", 
+				"endpoint", r.URL.Path, 
+				"error", err.Error(),
+			)
 		}
 	})
 
-	// test handleFunc
-	mux.HandleFunc("/foo/bar/test", func(w http.ResponseWriter, r *http.Request) {
-		slog.Info("endpoint '/foo/bar/test hit, responding...")
-		_, err := fmt.Fprintf(w, "r.URL.Path is: %s\n", r.URL.Path)
-		if err != nil {
-			slog.Error("error generating response.", "endpoint", r.URL.Path, "error", err.Error())
-		}
-	})
+	// add auth middleware
+	mux.Handle("/api/", gateway.AuthMiddleware(gate, authService))
 
 	return mux
 }
@@ -41,8 +43,10 @@ func main() {
 	slog.Info("starting gateway server...")
 	ctx := context.Background()
 	config := gateway.ReadConfig()
+	gate := gateway.NewGateway()
+	authService := gateway.NewAuthService()
 
-	mux := configureMux()
+	mux := configureMux(gate, *authService)
 	server := http.Server{
 		Addr: config.ServerAddress,
 		Handler: mux,
